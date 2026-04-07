@@ -1,66 +1,80 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"
+import { useState, useEffect } from "react"
+import styles from "./page.module.css"
 
 export default function Home() {
+  const [nome, setNome] = useState("")
+  const [email, setEmail] = useState("")
+  const [usuarios, setUsuarios] = useState<any[]>([])
+
+  async function carregarUsuarios() {
+    const response = await fetch("/api/usuarios")
+    const data = await response.json()
+    setUsuarios(data)
+  }
+
+  useEffect(() => {
+    carregarUsuarios()
+  }, [])
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+
+    await fetch("/api/usuarios", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ nome, email })
+    })
+
+    setNome("")
+    setEmail("")
+
+    await carregarUsuarios()
+  }
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
+
         <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+          <h1>Cadastro de Usuário</h1>
+          <p>Preencha os dados abaixo</p>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <input
+            className={styles.input}
+            type="text"
+            placeholder="Nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+          />
+
+          <input
+            className={styles.input}
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <button className={styles.button} type="submit">
+            Cadastrar
+          </button>
+        </form>
+
+        <ul className={styles.lista}>
+          {usuarios.map((user) => (
+            <li className={styles.item} key={user._id?.toString()}>
+              <span className={styles.nome}>{user.nome}</span>
+              <span className={styles.email}>{user.email}</span>
+            </li>
+          ))}
+        </ul>
+
       </main>
     </div>
-  );
+  )
 }
